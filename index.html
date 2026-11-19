@@ -69,6 +69,34 @@
   .card .note{font-size:12.5px;color:var(--muted);line-height:1.5;margin:0 0 16px}
   .card .btn{width:100%;flex:none;margin-top:8px}
   #loadMsg{font-size:13px;color:var(--muted);text-align:center;margin-top:10px;min-height:18px;line-height:1.45}
+  /* 동작 버튼 줄 */
+  .actions{display:flex;align-items:center;gap:8px;align-self:flex-start;pointer-events:none}
+  .chip{pointer-events:auto;height:42px;padding:0 14px;border-radius:999px;border:1px solid var(--line);
+    background:var(--panel);color:var(--text);font-size:14.5px;font-weight:700;font-family:inherit;
+    backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);white-space:nowrap}
+  .chip:active{transform:scale(.95)}
+  .chip:disabled{opacity:.38}
+  .chip.act{background:rgba(255,122,69,.22);border-color:rgba(255,122,69,.55)}
+  #actList{display:flex;gap:8px}
+  #actList.collapsed{display:none}
+  /* 말풍선 */
+  #bubble{position:fixed;left:0;top:0;transform:translate(-50%,-100%) scale(.85);transform-origin:50% 100%;
+    background:#fff;color:#2a2622;font-size:15px;font-weight:700;padding:8px 13px;border-radius:14px;
+    white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .18s, transform .18s;
+    box-shadow:0 4px 14px rgba(0,0,0,.25);z-index:5}
+  #bubble::after{content:"";position:absolute;left:50%;bottom:-7px;margin-left:-7px;border:7px solid transparent;
+    border-bottom:0;border-top-color:#fff}
+  #bubble.show{opacity:1;transform:translate(-50%,-100%) scale(1)}
+  /* 첫 화면 */
+  .hero{display:flex;justify-content:center;margin:-4px 0 6px}
+  .hero svg{width:120px;height:120px}
+  .hero .arm{transform-origin:84px 70px;animation:wave 1.1s ease-in-out infinite}
+  @keyframes wave{0%,100%{transform:rotate(-8deg)}50%{transform:rotate(22deg)}}
+  .card h1.center,.card .sub.center{text-align:center}
+  .notice{display:flex;gap:10px;align-items:flex-start;background:rgba(255,122,69,.14);border:1px solid rgba(255,122,69,.45);
+    border-radius:14px;padding:12px 13px;margin:0 0 14px;font-size:15.5px;line-height:1.45;font-weight:600;color:#fff}
+  .notice span:first-child{font-size:20px;line-height:1.2}
+  .card .ver{text-align:center;font-size:11.5px;color:var(--muted);margin-top:12px}
   #arStatus .spinner{width:34px;height:34px;border-radius:50%;border:3px solid rgba(255,255,255,.2);border-top-color:var(--accent);
     margin:4px auto 14px;animation:spin 1s linear infinite}
   @keyframes spin{to{transform:rotate(360deg)}}
@@ -83,7 +111,7 @@
 
 <div id="ui">
   <div class="row top">
-    <div class="badge" id="modeBadge">🧪 <b>시뮬레이션 모드</b> · v0.2</div>
+    <div class="badge" id="modeBadge">🧪 <b>시뮬레이션 모드</b> · v0.3</div>
     <div class="row">
       <button class="icon-btn" id="helpBtn" aria-label="도움말">?</button>
       <button class="icon-btn" id="muteBtn" aria-label="소리 켜기/끄기">🔊</button>
@@ -91,6 +119,13 @@
   </div>
   <div class="row bottom">
     <div id="hint">책상 위를 탭해서 캐릭터를 놓아 주세요</div>
+    <div class="actions">
+      <button class="chip" id="actToggle" aria-expanded="true">🎮 동작 ▾</button>
+      <div id="actList">
+        <button class="chip act" data-act="jump" disabled>⤒ 점프</button>
+        <button class="chip act" data-act="wave" disabled>👋 손 흔들기</button>
+      </div>
+    </div>
     <div class="btns">
       <button class="btn" id="stopBtn" disabled>■ 정지</button>
       <button class="btn" id="resetBtn" disabled>↺ 배치 초기화</button>
@@ -105,22 +140,44 @@
 </div>
 
 <div id="toast"></div>
+<div id="bubble"></div>
 <div id="scaleInfo">크기 1.0×</div>
 
 <!-- 시작 화면 -->
 <div class="overlay" id="intro">
   <div class="card">
-    <h1>책상 위 AR 캐릭터</h1>
-    <p class="sub" id="introSub">프로토타입 v0.2</p>
+    <div class="hero" aria-hidden="true">
+      <svg viewBox="0 0 120 120">
+        <ellipse cx="60" cy="112" rx="26" ry="5" fill="rgba(0,0,0,.35)"/>
+        <rect x="47" y="88" width="9" height="20" rx="4.5" fill="#8a93a3"/>
+        <rect x="64" y="88" width="9" height="20" rx="4.5" fill="#8a93a3"/>
+        <rect x="43" y="104" width="15" height="7" rx="3" fill="#ff7a45"/>
+        <rect x="62" y="104" width="15" height="7" rx="3" fill="#ff7a45"/>
+        <rect x="40" y="62" width="40" height="32" rx="15" fill="#ff7a45"/>
+        <circle cx="60" cy="75" r="4" fill="#9ff8ff"/>
+        <rect x="30" y="66" width="8" height="22" rx="4" fill="#f4efe6"/>
+        <g class="arm"><rect x="82" y="44" width="8" height="28" rx="4" fill="#f4efe6"/><circle cx="86" cy="42" r="6" fill="#f4efe6"/></g>
+        <ellipse cx="60" cy="40" rx="27" ry="24" fill="#f4efe6"/>
+        <ellipse cx="60" cy="42" rx="19" ry="11" fill="#1d2433"/>
+        <ellipse cx="53" cy="42" rx="3.2" ry="4.2" fill="#9ff8ff"/>
+        <ellipse cx="67" cy="42" rx="3.2" ry="4.2" fill="#9ff8ff"/>
+        <rect x="59" y="8" width="2" height="9" fill="#8a93a3"/>
+        <circle cx="60" cy="7" r="3.5" fill="#ff7a45"/>
+      </svg>
+    </div>
+    <h1 class="center">책상 위 AR 캐릭터</h1>
+    <p class="sub center" id="introSub">나만의 작은 친구를 책상 위에 불러 보세요</p>
+    <div class="notice"><span>📱</span><span>AR이 실행됩니다.<br>책상과 같은 평평한 장소에서 실행해 주세요.</span></div>
     <ul>
-      <li><span>1</span><span>책상 위를 <b>탭</b>하면 캐릭터가 나타나요.</span></li>
-      <li><span>2</span><span>캐릭터를 <b>탭</b>하면 걷기·점프·손 흔들기를 랜덤으로 반복해요.</span></li>
-      <li><span>3</span><span><b>두 손가락</b>으로 벌리면 크기 조절(0.5~3배), 돌리면 회전해요.</span></li>
+      <li><span>1</span><span>책상을 <b>탭</b>하면 캐릭터가 나타나요.</span></li>
+      <li><span>2</span><span>캐릭터를 <b>한 번 탭</b>하면 랜덤 동작, <b>두 번 탭</b>하면 나를 보고 인사해요.</span></li>
+      <li><span>3</span><span>빈 곳을 <b>탭</b>하면 그곳으로 걸어와요. 두 손가락으로 크기·회전도 바꿀 수 있어요.</span></li>
     </ul>
     <p class="note" id="introNote"></p>
     <button class="btn primary" id="arBtn" style="display:none" disabled>AR 엔진 불러오는 중…</button>
     <button class="btn" id="simBtn" disabled>불러오는 중…</button>
     <div id="loadMsg"></div>
+    <div class="ver" id="introVer"></div>
   </div>
 </div>
 
@@ -142,9 +199,12 @@
     <p class="sub">터치 조작 안내</p>
     <ul>
       <li class="ar-only"><span>📱</span><span><b>시작 자세</b>: 책상 위 40~50cm 높이에서 책상을 비스듬히 내려다보세요. 천천히 좌우로 비추면 인식이 좋아져요.</span></li>
-      <li><span>👆</span><span><b>책상 탭</b>: 캐릭터 배치 (배치 후에는 다시 탭해도 반응하지 않아요)</span></li>
-      <li><span>🤖</span><span><b>캐릭터 탭</b>: 랜덤 애니메이션 반복 시작</span></li>
-      <li><span>■</span><span><b>정지</b>: 애니메이션 멈춤</span></li>
+      <li><span>👆</span><span><b>책상 탭</b>: 캐릭터 배치</span></li>
+      <li><span>🤖</span><span><b>캐릭터 한 번 탭</b>: 랜덤 동작 반복 시작</span></li>
+      <li><span>👋</span><span><b>캐릭터 두 번 탭</b>: 나를 바라보며 손 흔들기</span></li>
+      <li><span>📍</span><span><b>빈 곳 탭</b>: 랜덤 동작을 멈추고 그곳으로 걸어오기 (이동 범위 끝까지)</span></li>
+      <li><span>🎮</span><span><b>동작 버튼</b>: 점프·손 흔들기 1회 실행 (버튼 줄은 접었다 펼 수 있어요)</span></li>
+      <li><span>■</span><span><b>정지</b>: 모든 동작 멈춤</span></li>
       <li><span>🤏</span><span><b>두 손가락 벌리기/오므리기</b>: 크기 0.5~3배</span></li>
       <li><span>🔄</span><span><b>두 손가락 돌리기</b>: 캐릭터 회전</span></li>
       <li class="sim-only"><span>☝️</span><span><b>한 손가락 드래그</b>: 시점 돌리기 · <b>＋/－</b>: 가까이/멀리</span></li>
@@ -171,7 +231,7 @@ window.THREE = THREE;   // 8th Wall의 three.js 연동 모듈이 window.THREE를
 /* =========================================================
    설정값
    ========================================================= */
-const VERSION     = 'v0.2';
+const VERSION     = 'v0.3';
 const BASE_HEIGHT = 0.15;          // 기본 캐릭터 키 (m)
 const UNIT_H      = 1.18;          // 모델 내부 단위 높이
 const AREA_RADIUS = 0.40;          // 이동 가능 반경 (m), 크기와 무관하게 고정
@@ -378,6 +438,7 @@ const sfx = (() => {
     start(){ tone({ f0: 520, dur: 0.09, vol: 0.18 }); tone({ f0: 780, dur: 0.12, vol: 0.18, delay: 0.08 }); },
     stop(){ tone({ f0: 620, dur: 0.08, vol: 0.16 }); tone({ f0: 410, dur: 0.12, vol: 0.16, delay: 0.07 }); },
     click(){ tone({ f0: 1400, f1: 900, dur: 0.05, type: 'triangle', vol: 0.16 }); },
+    talk(){ tone({ f0: 880, f1: 1180, dur: 0.06, vol: 0.09 }); tone({ f0: 1040, f1: 760, dur: 0.07, vol: 0.08, delay: 0.07 }); },
     get muted(){ return muted; },
     setMuted(m){
       muted = m;
@@ -397,8 +458,46 @@ const ch = {
   obj: null, placed: false, pos: new THREE.Vector3(), center: new THREE.Vector3(),
   yaw: 0, userScale: 1, looping: false, action: null, lastType: null, pauseTimer: 0,
   walkPhase: 0, moving: false, moveBlend: 0, jump: null, waving: false,
-  pose: { ...NEUTRAL }, popT: 1, blinkT: 2.5, time: 0
+  pose: { ...NEUTRAL }, popT: 1, blinkT: 2.5, time: 0,
+  manual: null,              // 사용자가 지시한 동작 (탭 이동, 동작 버튼, 인사) — 랜덤 반복보다 우선
+  talkTimer: 6
 };
+
+/* ---------- 대사 ---------- */
+const LINES = {
+  random: ['안녕!', '더워…', '추워…', '힘들다…', '재밌어!', '반가워!', '배고파…', '졸려…', '신난다!',
+           '심심해~', '같이 놀자!', '나 잘하지?', '여기 어디야?', '오늘도 화이팅!'],
+  wave:  ['안녕!', '반가워!'],
+  jump:  ['점프!', '영차!'],
+  place: ['반가워!', '여기 어디야?']
+};
+const pick = arr => arr[(Math.random() * arr.length) | 0];
+const bubbleEl = document.getElementById('bubble');
+let bubbleUntil = 0, bubbleTimer = 0;
+function say(text, { soft = false } = {}){
+  const now = performance.now();
+  if (soft && now < bubbleUntil) return;          // 이미 말하는 중이면 생략
+  bubbleEl.textContent = text;
+  bubbleEl.classList.add('show');
+  bubbleUntil = now + 2500;
+  clearTimeout(bubbleTimer);
+  bubbleTimer = setTimeout(() => bubbleEl.classList.remove('show'), 2500);
+  sfx.talk();
+  ch.talkTimer = 8 + Math.random() * 7;
+}
+function hideBubble(){ clearTimeout(bubbleTimer); bubbleEl.classList.remove('show'); bubbleUntil = 0; }
+const _bv = new THREE.Vector3();
+function updateBubble(){
+  if (!ch.placed || !bubbleEl.classList.contains('show') || !world.camera) return;
+  const h = BASE_HEIGHT * ch.userScale;
+  _bv.set(ch.pos.x, ch.pos.y + h * 1.12 + J.y * JUMP.height * charScale(), ch.pos.z).project(world.camera);
+  if (_bv.z > 1){ bubbleEl.style.visibility = 'hidden'; return; }
+  bubbleEl.style.visibility = 'visible';
+  const r = world.canvas.getBoundingClientRect();
+  const x = clamp((_bv.x + 1) / 2 * r.width + r.left, 60, window.innerWidth - 60);
+  const y = clamp((1 - _bv.y) / 2 * r.height + r.top - 6, 70, window.innerHeight - 20);
+  bubbleEl.style.left = x + 'px'; bubbleEl.style.top = y + 'px';
+}
 const charScale = () => (BASE_HEIGHT / UNIT_H) * ch.userScale;
 const walkSpeed = () => 0.085 * Math.pow(ch.userScale, 0.6);
 
@@ -423,7 +522,7 @@ function evalJump(dt){
   if (t < JUMP.crouch) return { y: 0, crouch: Math.sin((t/JUMP.crouch)*Math.PI/2), phase: 'crouch', k: 0 };
   t -= JUMP.crouch;
   if (t < JUMP.air){
-    if (!j.launched){ j.launched = true; sfx.jump(); }
+    if (!j.launched){ j.launched = true; sfx.jump(); if (Math.random() < 0.4) say(pick(LINES.jump), { soft: true }); }
     const k = t / JUMP.air;
     return { y: 4*k*(1-k), crouch: 0, phase: 'air', k };
   }
@@ -471,9 +570,28 @@ function makeAction(type){
   if (type.startsWith('walk')) a.target = pickTarget();
   return a;
 }
+function cameraYaw(){
+  const cam = world.camera.getWorldPosition(new THREE.Vector3());
+  return Math.atan2(cam.x - ch.pos.x, cam.z - ch.pos.z);
+}
 function runAction(a, dt){
   a.t += dt;
+  if ((a.type === 'wave' || a.type === 'walkWave' || a.type === 'jumpWave') && !a.said){
+    a.said = true; say(pick(LINES.wave), { soft: true });
+  }
   switch (a.type){
+    case 'goto': return stepWalk(a, dt);            // 탭한 곳으로 걷기
+    case 'faceWave': {                               // 나를 바라보며 손 흔들기
+      const diff = wrap(cameraYaw() - ch.yaw);
+      ch.yaw = wrap(ch.yaw + clamp(diff, -8*dt, 8*dt));
+      if (!a.facing){
+        if (Math.abs(diff) < 0.15 || a.t > 1.2){ a.facing = true; a.t0 = a.t; say(pick(LINES.wave)); }
+        return false;
+      }
+      ch.waving = true;
+      if (a.t - a.t0 > 2.2){ ch.waving = false; return true; }
+      return false;
+    }
     case 'walk': return stepWalk(a, dt);
     case 'walkJump': {
       const arrived = stepWalk(a, dt);
@@ -524,23 +642,47 @@ function placeAt(p){
   ch.userScale = 1; ch.popT = 0; ch.placed = true;
   ch.pose = { ...NEUTRAL }; ch.walkPhase = 0; ch.moveBlend = 0; ch.jump = null; ch.waving = false;
   shared.area.position.set(p.x, p.y + 0.0015, p.z); shared.area.visible = true;
+  ch.manual = null; ch.talkTimer = 8;
   sfx.place();
+  setTimeout(() => { if (ch.placed) say(pick(LINES.place)); }, 550);
   updateUI();
 }
+function cancelActions(){ ch.action = null; ch.manual = null; ch.waving = false; }
 function startLoop(){
-  if (ch.looping) return;
-  ch.looping = true; ch.action = null; ch.pauseTimer = 0.15;
-  sfx.start(); toast('움직이기 시작!');
+  if (ch.looping && !ch.manual) return;
+  cancelActions();
+  ch.looping = true; ch.pauseTimer = 0.15; ch.talkTimer = 3 + Math.random()*3;
+  sfx.start(); toast('랜덤 동작 시작!');
   updateUI();
 }
-function stopLoop(){
-  if (!ch.looping) return;
-  ch.looping = false; ch.action = null; ch.waving = false;
+function stopAll(){
+  if (!ch.looping && !ch.manual) return;
+  ch.looping = false; cancelActions();          // 공중이면 착지까지는 자연스럽게 마무리
   sfx.stop();
   updateUI();
 }
+// 사용자가 직접 지시한 동작
+function doManual(type, extra = {}){
+  if (!ch.placed) return;
+  if (type === 'faceWave'){
+    ch.action = null; ch.waving = false;        // 랜덤 반복 중이면 인사 후 이어서 반복
+  } else {
+    ch.looping = false; cancelActions();        // 탭 이동·동작 버튼은 랜덤 반복을 멈춤
+  }
+  ch.manual = { type, t: 0, ...extra };
+  updateUI();
+}
+function clampToArea(p){
+  let dx = p.x - ch.center.x, dz = p.z - ch.center.z;
+  const d = Math.hypot(dx, dz), R = AREA_RADIUS * 0.97;
+  if (d > R){ dx *= R/d; dz *= R/d; }
+  const out = new THREE.Vector3(ch.center.x + dx, ch.center.y, ch.center.z + dz);
+  if (stage.clamp) stage.clamp(out);
+  return out;
+}
 function resetPlacement(){
-  ch.looping = false; ch.action = null; ch.jump = null; ch.waving = false; ch.placed = false; ch.userScale = 1;
+  ch.looping = false; cancelActions(); hideBubble();
+  ch.jump = null; ch.placed = false; ch.userScale = 1;
   if (ch.obj) ch.obj.root.visible = false;
   shared.shadow.visible = false; shared.area.visible = false;
   if (world.mode === 'ar' && window.XR8){ try { XR8.XrController.recenter(); } catch (e) {} }
@@ -582,12 +724,19 @@ function updateCharacter(dt){
   ch.moving = false;
   J = evalJump(dt);
 
-  if (ch.looping){
+  if (ch.manual){
+    if (runAction(ch.manual, dt)){ ch.manual = null; ch.pauseTimer = 0.5; updateUI(); }
+  } else if (ch.looping){
     if (ch.action){
       if (runAction(ch.action, dt)){ ch.action = null; ch.pauseTimer = 0.35 + Math.random()*0.6; }
     } else if ((ch.pauseTimer -= dt) <= 0){
       ch.action = makeAction(pickType());
     }
+  }
+  // 랜덤 대사 (반복 중 8~15초마다)
+  if (ch.looping && (ch.talkTimer -= dt) <= 0){
+    ch.talkTimer = 8 + Math.random()*7;
+    say(pick(LINES.random), { soft: true });
   }
 
   const ox = ch.pos.x - ch.center.x, oz = ch.pos.z - ch.center.z, od = Math.hypot(ox, oz);
@@ -672,6 +821,10 @@ function initSim(){
     isInsideSurface(x, z){
       return Math.abs(x) <= DESK.w/2 - DESK.margin && Math.abs(z) <= DESK.d/2 - DESK.margin;
     },
+    clamp(v){
+      v.x = clamp(v.x, -(DESK.w/2 - DESK.margin), DESK.w/2 - DESK.margin);
+      v.z = clamp(v.z, -(DESK.d/2 - DESK.margin), DESK.d/2 - DESK.margin);
+    },
     outsideMsg: '책상 위를 탭해 주세요'
   };
 
@@ -700,6 +853,7 @@ function initSim(){
       target.y + dist*Math.sin(el),
       target.z + dist*Math.cos(el)*Math.cos(az));
     camera.lookAt(target);
+    updateBubble();
     simRenderer.render(scene, camera);
   });
 }
@@ -815,6 +969,7 @@ async function startAR(){
           shared.reticle.scale.set(s, s, s);
         }
       }
+      updateBubble();
     },
     onCameraStatusChange: ({ status }) => {
       if (status === 'requesting'){
@@ -930,12 +1085,33 @@ function hitCharacter(ndc, x, y){
   const halfPx = Math.abs(c.y - top.y)/2 * r.height;
   return Math.hypot(x - cx, y - cy) < Math.max(48, halfPx * 1.3);
 }
+let singleTapTimer = 0, lastCharTap = 0;
 function handleTap(x, y){
   if (!stage) return;
   const ndc = toNDC(x, y);
   if (ch.placed){
-    if (hitCharacter(ndc, x, y) && !ch.looping) startLoop();
-    return;   // 배치 후 표면 탭은 반응 없음
+    if (hitCharacter(ndc, x, y)){
+      const now = performance.now();
+      if (now - lastCharTap < 320){
+        // 두 번 탭: 나를 바라보며 손 흔들기
+        clearTimeout(singleTapTimer); lastCharTap = 0;
+        doManual('faceWave');
+      } else {
+        // 한 번 탭: 랜덤 반복 시작 (두 번 탭인지 잠시 기다린 뒤)
+        lastCharTap = now;
+        clearTimeout(singleTapTimer);
+        singleTapTimer = setTimeout(() => {
+          lastCharTap = 0;
+          if (!ch.looping || ch.manual) startLoop();
+        }, 320);
+      }
+      return;
+    }
+    // 빈 곳 탭: 랜덤 반복을 멈추고 그곳으로 걸어오기 (이동 범위 끝까지)
+    const p = stage.hitTestSurface(ndc);
+    if (!p){ toast(stage.outsideMsg); return; }
+    doManual('goto', { target: clampToArea(p) });
+    return;
   }
   const p = stage.hitTestSurface(ndc);
   if (!p){ toast(stage.outsideMsg); return; }
@@ -959,16 +1135,33 @@ function setMode(mode){
   updateUI();
 }
 function updateUI(){
-  stopBtn.disabled = !ch.looping;
+  stopBtn.disabled = !ch.looping && !ch.manual;
+  document.querySelectorAll('#actList .chip').forEach(b => b.disabled = !ch.placed);
   resetBtn.disabled = !ch.placed;
   const ar = world.mode === 'ar';
   hintEl.textContent = !ch.placed
       ? (ar ? '책상을 비춘 뒤, 캐릭터를 놓을 곳을 탭하세요' : '책상 위를 탭해서 캐릭터를 놓아 주세요')
-    : !ch.looping ? '캐릭터를 탭하면 움직이기 시작해요'
-    : '두 손가락으로 크기·회전을 바꿀 수 있어요';
+    : !ch.looping ? '캐릭터 한 번 탭: 랜덤 동작 · 두 번 탭: 인사'
+    : '빈 곳을 탭하면 그곳으로 걸어와요';
   muteBtn.textContent = sfx.muted ? '🔇' : '🔊';
 }
-stopBtn.addEventListener('click', () => stopLoop());
+stopBtn.addEventListener('click', () => stopAll());
+// 동작 버튼 (1회 실행)
+document.querySelectorAll('#actList .chip').forEach(b => b.addEventListener('click', () => {
+  sfx.click(); doManual(b.dataset.act);
+}));
+// 동작 버튼 줄 접기/펼치기
+const actToggle = $('actToggle'), actList = $('actList');
+function setActOpen(open){
+  actList.classList.toggle('collapsed', !open);
+  actToggle.textContent = open ? '🎮 동작 ▾' : '🎮 동작 ▸';
+  actToggle.setAttribute('aria-expanded', String(open));
+  try { localStorage.setItem('webar-actions-open', open ? '1' : '0'); } catch (e) {}
+}
+let actOpen = true;
+try { actOpen = localStorage.getItem('webar-actions-open') !== '0'; } catch (e) {}
+setActOpen(actOpen);
+actToggle.addEventListener('click', () => { sfx.click(); setActOpen(actList.classList.contains('collapsed')); });
 resetBtn.addEventListener('click', () => { sfx.click(); resetPlacement(); toast('배치가 초기화되었어요'); });
 muteBtn.addEventListener('click', () => {
   sfx.unlock(); sfx.setMuted(!sfx.muted); if (!sfx.muted) sfx.click();
@@ -986,14 +1179,13 @@ $('arToSimBtn').addEventListener('click', () => {
 
 /* ---------- 시작 화면 ---------- */
 const arBtn = $('arBtn'), simBtn = $('simBtn');
+$('introVer').textContent = `프로토타입 ${VERSION}`;
 if (arCapable){
-  $('introSub').textContent = `프로토타입 ${VERSION} · 실제 AR 지원`;
   $('introNote').innerHTML = '<b>AR 시작</b>을 누른 뒤 카메라·동작 센서 권한을 허용하세요. 책상 위 40~50cm 높이에서 책상을 비스듬히 내려다보며 시작하면 가장 잘 인식돼요.';
   arBtn.style.display = 'block';
   simBtn.textContent = '🧪 시뮬레이션으로 보기';
   loadEngine();
 } else {
-  $('introSub').textContent = `프로토타입 ${VERSION} · 시뮬레이션`;
   $('introNote').textContent = inFrame
     ? '이 화면(Claude 안)에서는 카메라를 쓸 수 없어 가상 책상으로 동작을 확인해요. 실제 AR은 GitHub Pages 링크를 휴대폰 Chrome에서 열어 주세요.'
     : '이 기기에서는 카메라 AR을 쓸 수 없어 가상 책상으로 동작을 확인해요. 실제 AR은 휴대폰 Chrome에서 열어 주세요.';
