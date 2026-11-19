@@ -1,4 +1,4 @@
-# 책상 위 AR 캐릭터 (WebAR 프로토타입 v0.3)
+# 책상 위 AR 캐릭터 (WebAR 프로토타입 v0.4)
 
 iOS·Android 휴대폰의 **Chrome**에서 링크만 열면 실행되는 WebAR 프로토타입입니다.
 책상을 탭하면 약 15cm 크기의 캐릭터가 나타나고, 캐릭터를 탭하면 걷기·점프·손 흔들기를 랜덤으로 반복합니다.
@@ -58,9 +58,19 @@ iOS·Android 휴대폰의 **Chrome**에서 링크만 열면 실행되는 WebAR �
 5. **내보내기 옵션**: Include → Limit to **Selected Objects** (캐릭터와 아마추어 선택), Animation → **Animation** 체크, Mode는 **Actions**.
 6. **용량**: 가능하면 10MB 이하 (텍스처는 1024px 이하 권장).
 
+## 캐릭터 모델
+
+- 사용자가 Blender로 만든 캐릭터(`character.glb`)를 사용합니다. 모델은 `index.html` 안에 base64로 내장되어 있어서 **`index.html` 하나만 올리면** 됩니다.
+- 원본 대비 앞뒤 두께를 1.5배로 늘렸고, `Walk`(제자리 걷기, 0.6초 반복)와 `Jump`(0.84초) 애니메이션을 추가했습니다.
+- 사용 애니메이션: `Idle`(대기), `Walk`(이동), `Jump`(점프), `Wave`(손 흔들기), `Happy`(등장·랜덤), `Squish`(랜덤)
+- 모델을 불러오지 못하면 임시 로봇 캐릭터로 대신 표시합니다.
+
 ## 파일 구성
 
 ```
-index.html   앱 전체 (HTML + CSS + JavaScript)
-README.md    이 문서
+index.html       앱 전체 (HTML + CSS + JavaScript + 내장 모델) ← GitHub에 올리는 파일
+README.md        이 문서
+index.src.html   개발용 원본 (모델 내장 전)
+character.glb    가공한 캐릭터 모델
+build.py         index.src.html + character.glb → index.html 생성
 ```
